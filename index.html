@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RCCG House Fellowship 2025/2026 Second Quarter Examination</title>
+    <title>RCCG House Fellowship 2025/2026 Third Quarter Examination</title>
     <style>
         * {
             margin: 0;
@@ -1011,7 +1011,7 @@
     <div class="welcome-popup" id="welcomePopup">
         <div class="welcome-content">
             <button class="welcome-close" onclick="closeWelcomePopup()">×</button>
-            <img src="daddy g.o.jpeg" alt="Welcome" class="welcome-image" id="welcomeImageElement">
+            <img src="thanks.png" alt="Welcome" class="welcome-image" id="welcomeImageElement">
         </div>
     </div>
 
@@ -1222,7 +1222,7 @@
     <button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()">↑</button>
 
     <script>
-        // ==================== 50 QUESTIONS DATA ====================
+        // ==================== 50 QUESTIONS DATA (UNCHANGED) ====================
         const questions = [
             // GOD'S MEGAPHONE (1-5)
             { question: "1. 'God's Megaphone' refers to:", options: ["Public announcements", "God amplifying His warning to man", "Church microphone", "Evangelism outreach"], answer: 1 },
@@ -1295,15 +1295,16 @@
             { question: "50. God heals the:", options: ["Proud", "Brokenhearted", "Rebellious", "Careless"], answer: 1 }
         ];
 
-        // ==================== TIMER VARIABLES ====================
+        // ==================== TIMER & APP VARIABLES ====================
         let currentQuestion = 0;
         let userAnswers = new Array(50).fill(null);
         let timerInterval = null;
-        let elapsedTime = 0; // Counts UP from 0
+        let elapsedTime = 0;
         let examStartTime = null;
         let examEndTime = null;
         let studentData = {};
         let timerRunning = false;
+        let examQuestions = []; // Will hold shuffled questions
         const maxTime = 600; // 10 minutes max
 
         // ==================== INITIALIZATION ====================
@@ -1316,12 +1317,11 @@
             updateTimerDisplay();
         });
 
-        // ==================== WELCOME POPUP ====================
+        // ==================== WELCOME & ADS POPUPS ====================
         function closeWelcomePopup() {
             document.getElementById('welcomePopup').style.display = 'none';
         }
 
-        // ==================== ADS POPUP ====================
         function closeAdsPopup() {
             document.getElementById('adsPopup').style.display = 'none';
         }
@@ -1368,7 +1368,17 @@
             document.getElementById('warningModal').style.display = 'none'; 
         }
 
-        // ==================== EXAM START ====================
+        // ==================== QUESTION SHUFFLING (Fisher-Yates) ====================
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // ==================== EXAM START - TIMER STARTS IMMEDIATELY ====================
         function startExam() {
             const name = document.getElementById('studentName').value.trim();
             const parish = document.getElementById('parishName').value.trim();
@@ -1391,6 +1401,9 @@
                 hfCentre: hfCentre
             };
 
+            // ✅ SHUFFLE QUESTIONS for this user (creates unique exam per user)
+            examQuestions = shuffleArray([...questions]);
+            
             document.getElementById('displayStudentName').textContent = '👤 ' + name;
             document.getElementById('displayParish').textContent = '🏛️ ' + parish;
             document.getElementById('displayHF').textContent = '🏠 ' + hfCentre;
@@ -1404,32 +1417,26 @@
             elapsedTime = 0;
             timerRunning = false;
             
+            // ✅ START TIMER IMMEDIATELY - BEFORE ANY UI RENDERING
+            startTimer();
+            
+            // Then load UI (timer already running)
             loadQuestion(0);
             createQuestionPalette();
             updateTimerDisplay();
-            
-            // START TIMER IMMEDIATELY
-            startTimer();
         }
 
         // ==================== TIMER FUNCTIONS - COUNTS UP ====================
         function startTimer() {
-            if (timerRunning) {
-                return;
-            }
-            
-            if (timerInterval !== null) {
-                clearInterval(timerInterval);
-            }
+            if (timerRunning) return;
+            if (timerInterval !== null) clearInterval(timerInterval);
             
             timerRunning = true;
             
             timerInterval = setInterval(function() {
                 elapsedTime = elapsedTime + 1;
-                
                 updateTimerDisplay();
                 
-                // Auto submit when 10 minutes reached
                 if (elapsedTime >= maxTime) {
                     submitExam();
                 }
@@ -1463,12 +1470,12 @@
         function loadQuestion(index) {
             currentQuestion = index;
             document.getElementById('questionNumber').textContent = 'Question ' + (index + 1) + ' of 50';
-            document.getElementById('questionText').textContent = questions[index].question;
+            document.getElementById('questionText').textContent = examQuestions[index].question;
             
             const optionsContainer = document.getElementById('optionsContainer');
             optionsContainer.innerHTML = '';
             
-            questions[index].options.forEach(function(option, i) {
+            examQuestions[index].options.forEach(function(option, i) {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'option';
                 if (userAnswers[index] === i) { 
@@ -1563,7 +1570,6 @@
 
         function submitExam() {
             stopTimer();
-            
             examEndTime = new Date();
             document.getElementById('examContainer').style.display = 'none';
             document.getElementById('resultContainer').style.display = 'block';
@@ -1583,7 +1589,7 @@
             reviewContainer.innerHTML = '';
             
             for (let i = 0; i < 50; i++) {
-                const isCorrect = userAnswers[i] === questions[i].answer;
+                const isCorrect = userAnswers[i] === examQuestions[i].answer;
                 if (isCorrect) { 
                     correct++; 
                 } else { 
@@ -1592,7 +1598,7 @@
                 
                 const reviewItem = document.createElement('div');
                 reviewItem.className = 'review-item ' + (isCorrect ? 'correct' : 'wrong');
-                reviewItem.innerHTML = '<div class="review-question">Q' + (i + 1) + ': ' + questions[i].question + '</div><div class="review-answer"><strong>Your Answer:</strong> ' + (userAnswers[i] !== null ? questions[i].options[userAnswers[i]] : 'Not answered') + '<br><strong>Correct Answer:</strong> ' + questions[i].options[questions[i].answer] + '</div>';
+                reviewItem.innerHTML = '<div class="review-question">Q' + (i + 1) + ': ' + examQuestions[i].question + '</div><div class="review-answer"><strong>Your Answer:</strong> ' + (userAnswers[i] !== null ? examQuestions[i].options[userAnswers[i]] : 'Not answered') + '<br><strong>Correct Answer:</strong> ' + examQuestions[i].options[examQuestions[i].answer] + '</div>';
                 reviewContainer.appendChild(reviewItem);
             }
             
